@@ -38,7 +38,7 @@ defmodule Elasticsearch.Index.BulkTest do
     @tag :regression
     test "calls itself recursively properly" do
       assert {:error, [%TestException{}]} =
-               Bulk.upload(Cluster, :posts, %{store: Store, sources: [Post]}, [
+               Bulk.upload(Cluster, :posts, %{store: Store, sources: [Post]}, [], [
                  %TestException{}
                ])
     end

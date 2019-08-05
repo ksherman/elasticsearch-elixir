@@ -88,19 +88,20 @@ defmodule Elasticsearch.Index.Bulk do
           Cluster.t(),
           index_name :: String.t(),
           Elasticsearch.Store.t(),
+          list,
           list
-        ) ::
-          :ok | {:error, [map]}
-  def upload(cluster, index_name, index_config, errors \\ [])
-  def upload(_cluster, _index_name, %{sources: []}, []), do: :ok
+        ) :: :ok | {:error, [map]}
+  def upload(cluster, index_name, index_config, opts \\ [], errors \\ [])
+  def upload(_cluster, _index_name, %{sources: []}, [], []), do: :ok
 
-  def upload(_cluster, _index_name, %{sources: []}, errors),
+  def upload(_cluster, _index_name, %{sources: []}, [], errors),
     do: {:error, errors}
 
   def upload(
         cluster,
         index_name,
         %{store: store, sources: [source | tail]} = index_config,
+        opts,
         errors
       )
       when is_atom(store) do
@@ -112,14 +113,14 @@ defmodule Elasticsearch.Index.Bulk do
       store.transaction(fn ->
         source
         |> store.stream()
-        |> Stream.map(&encode!(config, &1, index_name))
+        |> Stream.map(&encode!(config, &1, index_name, opts))
         |> Stream.chunk_every(bulk_page_size)
         |> Stream.intersperse(bulk_wait_interval)
         |> Stream.map(&put_bulk_page(config, index_name, &1))
         |> Enum.reduce(errors, &collect_errors/2)
       end)
 
-    upload(config, index_name, %{index_config | sources: tail}, errors)
+    upload(config, index_name, %{index_config | sources: tail}, opts, errors)
   end
 
   defp put_bulk_page(_config, _index_name, wait_interval)
