@@ -92,9 +92,9 @@ defmodule Elasticsearch.Index.Bulk do
           list
         ) :: :ok | {:error, [map]}
   def upload(cluster, index_name, index_config, opts \\ [], errors \\ [])
-  def upload(_cluster, _index_name, %{sources: []}, [], []), do: :ok
+  def upload(_cluster, _index_name, %{sources: []}, _opts, []), do: :ok
 
-  def upload(_cluster, _index_name, %{sources: []}, [], errors),
+  def upload(_cluster, _index_name, %{sources: []}, _opts, errors),
     do: {:error, errors}
 
   def upload(
