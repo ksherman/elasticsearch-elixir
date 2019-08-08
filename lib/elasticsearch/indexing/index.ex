@@ -24,16 +24,16 @@ defmodule Elasticsearch.Index do
       iex> Index.hot_swap(Cluster, "posts")
       :ok
   """
-  @spec hot_swap(Cluster.t(), alias :: String.t() | atom) ::
+  @spec hot_swap(Cluster.t(), alias :: String.t() | atom, list) ::
           :ok | {:error, Elasticsearch.Exception.t()}
-  def hot_swap(cluster, alias) do
+  def hot_swap(cluster, alias, opts \\ []) do
     alias = alias_to_atom(alias)
     name = build_name(alias)
     config = Config.get(cluster)
     %{settings: settings_file} = index_config = config[:indexes][alias]
 
     with :ok <- create_from_file(config, name, settings_file),
-         :ok <- Bulk.upload(config, name, index_config),
+         :ok <- Bulk.upload(config, name, index_config, opts),
          :ok <- __MODULE__.alias(config, name, alias),
          :ok <- clean_starting_with(config, alias, 2),
          :ok <- refresh(config, name) do
